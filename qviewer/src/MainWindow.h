@@ -45,6 +45,7 @@ class MainWindow : public QMainWindow
     void on_actionSmooth_Mesh_triggered();
     void on_actionSmooth_Curvatures_triggered();
     void on_actionSmooth_Curvature_Deriv_triggered();
+    void on_actionSmooth_Normals_triggered();
     void fitViewerSize(const QString& size);
     bool openScene(const QString& filename);
     bool saveScene(const QString& filename);

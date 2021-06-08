@@ -20,7 +20,7 @@ void GQDraw::drawElements(const GQVertexBufferSet& vb, int gl_mode, int offset,
 {
 	assert(vb.isBound());
 		
-	if (indices > 0) 
+	if (indices > (int*)0) 
 	{
 		assert(!vb.vbosLoaded());
 		const int* start = indices + offset;

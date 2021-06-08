@@ -15,7 +15,7 @@ win32 {
 else {
     TEMPLATE = lib
 
-    QMAKE_CXXFLAGS += -fopenmp
+    #QMAKE_CXXFLAGS += -fopenmp
     macx {
         DEFINES += DARWIN
         }
@@ -35,3 +35,5 @@ INCLUDEPATH += include
 #Input
 HEADERS += include/*.h
 SOURCES += libsrc/*.cc
+
+INCLUDEPATH += /usr/local/Cellar/qt@4/4.8.7_6/lib/QtCore.framework/Versions/4/Headers/

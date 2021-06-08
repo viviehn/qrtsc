@@ -19,7 +19,7 @@ else {
 
 	macx {
 		DEFINES += DARWIN
-        QMAKE_CXXFLAGS += -fopenmp
+#        QMAKE_CXXFLAGS += -fopenmp
 	}
 	else {
 		DEFINES += LINUX
@@ -38,3 +38,5 @@ INCLUDEPATH += .
 HEADERS += *.h
 SOURCES += *.cpp
 FORMS += *.ui
+
+INCLUDEPATH += /usr/local/Cellar/qt@4/4.8.7_6/lib/QtCore.framework/Versions/4/Headers/

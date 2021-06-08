@@ -14,8 +14,8 @@ win32 {
 }
 else {
     TEMPLATE = app
-    QMAKE_CXXFLAGS += -fopenmp
-    QMAKE_LFLAGS += -fopenmp
+#    QMAKE_CXXFLAGS += -fopenmp
+#    QMAKE_LFLAGS += -fopenmp
     macx {
         DEFINES += DARWIN
         UNAME = Darwin
@@ -63,6 +63,8 @@ DEPENDPATH += ../qglviewer
 INCLUDEPATH += ../qglviewer 
 LIBS += -L../qglviewer/$${DBGNAME} -lqglviewer
 DEFINES += QGLVIEWER_STATIC
+
+INCLUDEPATH += /usr/local/Cellar/qt@4/4.8.7_6/lib/QtCore.framework/Versions/4/Headers/
 
 # Input
 HEADERS += src/*.h

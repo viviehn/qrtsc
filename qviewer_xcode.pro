@@ -18,8 +18,16 @@ CONFIG(debug, debug|release) {
     CONFIG -= app_bundle
 }
 LIBS += -framework CoreFoundation
-QMAKE_CXXFLAGS += -fopenmp
-QMAKE_LFLAGS += -fopenmp
+QMAKE_CXXFLAGS += -Xpreprocessor -fopenmp
+QMAKE_LFLAGS += -Xpreprocessor -fopenmp
+QMAKE_INFO_PLIST = macosx/Info.plist
+
+ICON.files = qviewer/macosx/bunny_icon.icns
+ICON.path = Contents/Resources
+
+SHADERS.files = qviewer/shaders
+SHADERS.path = Contents/MacOS
+QMAKE_BUNDLE_DATA += SHADERS ICON
 
 QT += opengl xml script
 
@@ -48,6 +56,7 @@ SOURCES += libgq/matio/*.c
 
 # demoutils
 HEADERS += demoutils/include/*.h
+INCLUDEPATH += demoutils/include
 SOURCES += demoutils/libsrc/*.cc
 
 # qviewer
@@ -63,7 +72,7 @@ SOURCES += trimesh2/libsrc/*.cc
 PRE_TARGETDEPS += qglviewer/$${DBGNAME}/libqglviewer.a
 DEPENDPATH += qglviewer
 INCLUDEPATH += qglviewer 
-LIBS += -Lqglviewer/$${DBGNAME} -lqglviewer
+LIBS += -Lqglviewer/$${DBGNAME} -lqglviewer -lomp
 DEFINES += QGLVIEWER_STATIC
 
 

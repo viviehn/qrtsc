@@ -14,7 +14,7 @@ win32 {
 else {
 	TEMPLATE = lib
 
-    QMAKE_CXXFLAGS += -fopenmp
+#    QMAKE_CXXFLAGS += -fopenmp
 	macx {
 		DEFINES += DARWIN
 	}
@@ -37,3 +37,5 @@ SOURCES += libsrc/*.cc
 
 # Trimesh2
 INCLUDEPATH += ../trimesh2/include
+
+INCLUDEPATH += /usr/local/Cellar/qt@4/4.8.7_6/lib/QtCore.framework/Versions/4/Headers/

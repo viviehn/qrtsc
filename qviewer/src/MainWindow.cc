@@ -327,6 +327,11 @@ void MainWindow::setupMeshMenu()
     connect(smoothCurvDAction, SIGNAL(triggered()), 
             this, SLOT(on_actionSmooth_Curvature_Deriv_triggered()));
     meshMenu->addAction(smoothCurvDAction);
+
+    QAction* smoothNormalsAction = new QAction(tr("&Smooth Normals"), 0);
+    connect(smoothNormalsAction, SIGNAL(triggered()), 
+            this, SLOT(on_actionSmooth_Normals_triggered()));
+    meshMenu->addAction(smoothNormalsAction);
 }
 
 void MainWindow::setupDockWidgets(QMenu* menu)
@@ -545,6 +550,13 @@ void MainWindow::on_actionSmooth_Curvature_Deriv_triggered()
     }
 }
 
+void MainWindow::on_actionSmooth_Normals_triggered()
+{
+    if (_scene) {
+        Rtsc::filter_normals();
+        _gl_viewer->updateGL();
+    }
+}
 
 void MainWindow::setupViewerResizeActions(QMenu* menu)
 {

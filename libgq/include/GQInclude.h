@@ -17,7 +17,7 @@ See the COPYING file for details.
 
 #ifdef DARWIN
 #    include <GLee.h>
-#    include <glu.h>
+#    include </Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/OpenGL.framework/Versions/A/Headers/glu.h>
 #endif
 #ifdef LINUX
 // There is a strange, bad interaction between Qt and GLee
