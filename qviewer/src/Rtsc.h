@@ -31,14 +31,23 @@ void redraw();
 
 // Smooth the mesh
 void filter_mesh(int dummy = 0);
+void filter_mesh(int i, bool use_val);
 // Diffuse the normals across the mesh
 void filter_normals(int dummy = 0);
+void filter_normals(int i, bool use_val);
 // Diffuse the curvatures across the mesh
 void filter_curv(int dummy = 0);
 // Diffuse the curvature derivatives across the mesh
 void filter_dcurv(int dummy = 0);
 // Perform an iteration of subdivision
 void subdivide_mesh(int dummy = 0);
+
+
+inline bool is_neg(float i) { return i < 0; }
+inline bool is_pos(float i) { return i > 0; }
+
+float get_info_val();
+float get_feature_size();
 
 }
 

@@ -34,6 +34,8 @@ Port modifications by:
 #include "GQInclude.h"
 #include "GQShaderManager.h"
 #include "GQTexture.h"
+#include "GQVertexBufferSet.h"
+#include "GLee.h"
 
 using namespace std;
 
@@ -89,7 +91,8 @@ static dkBool draw_edges("Style->Draw Edges", false);
 vector<Color> curv_colors, gcurv_colors;
 static QStringList mesh_color_types = QStringList() << "White" << "Gray" 
     << "Black" << "Curvature" << "Gaussian C." << "Mesh" << "Depth"
-    << "Normals" << "Texture";
+    << "Normals" << "nv" << "apparent_ridge_feature" << "suggestive_contour_feature" << 
+    "ridge_feature" << "valley_feature" << "Texture";
 static dkStringList color_style("Style->Mesh Color", mesh_color_types);
 
 // Lighting
@@ -119,6 +122,7 @@ static dkBool draw_wperp("Vectors->W Perp", false);
 
 // Other miscellaneous variables
 float feature_size;	// Used to make thresholds dimensionless
+float info_val;
 float currsmooth;	// Used in smoothing
 vec currcolor;		// Current line color
 xform xf;           // Local copy of the viewing transform
@@ -126,9 +130,13 @@ point viewpos;
     
 // Per-vertex computed values at each frame
 vector<float> ndotv, kr;
+QVector<float> q_ndotv;
 vector<float> sctest_num, sctest_den, shtest_num;
 vector<float> q1, Dt1q1;
 vector<vec2> t1;
+
+bool is_neg(float i) { return i < 0; }
+bool is_pos(float i) { return i > 0; }
 
 // Draw triangle strips.  They are stored as length followed by values.
 void draw_tstrips()
@@ -369,6 +377,11 @@ void draw_base_mesh()
     } 
 
     GQShaderRef shader;
+    GLuint buffer;
+    GQVertexBufferSet GQvbs;
+    QString buffer_name;
+    QVector<float> q_buffer;
+
     // Shaders for debugging colors
     if (color_style == "Depth") {
         shader = GQShaderManager::bindProgram("depth");
@@ -376,6 +389,70 @@ void draw_base_mesh()
         shader.setUniform1f("bsphere_radius", themesh->bsphere.r);
     } else if (color_style == "Normals") {
         shader = GQShaderManager::bindProgram("normals");
+    } else if (color_style == "nv") {
+        q_buffer = QVector<float>::fromStdVector(ndotv);
+        buffer_name = "v_buffer";
+        GQvbs.add(buffer_name, 1, q_buffer);
+        shader = GQShaderManager::bindProgram("buffer");
+        shader.setUniform1f("normalization", 1.0);
+        GQvbs.bind(shader);
+    } else if (color_style == "apparent_ridge_feature") {
+        buffer_name = "v_buffer";
+        q_buffer = QVector<float>::fromStdVector(q1);
+
+        QVector<float> sort_buffer = QVector<float>::fromStdVector(q1);
+        std::sort(sort_buffer.begin(), sort_buffer.end());
+        int idx = themesh->vertices.size() * .90;
+
+        GQvbs.add(buffer_name, 1, q_buffer);
+        shader = GQShaderManager::bindProgram("buffer");
+        GQvbs.bind(shader);
+        shader.setUniform1f("normalization", sort_buffer.at(idx));
+        info_val = sort_buffer.at(idx);
+    } else if (color_style == "suggestive_contour_feature") {
+        buffer_name = "v_buffer";
+        q_buffer = QVector<float>::fromStdVector(sctest_num);
+
+        QVector<float> sort_buffer = QVector<float>::fromStdVector(sctest_num);
+        std::sort(sort_buffer.begin(), sort_buffer.end());
+        int idx = themesh->vertices.size() * .90;
+
+        GQvbs.add(buffer_name, 1, q_buffer);
+        shader = GQShaderManager::bindProgram("buffer");
+        GQvbs.bind(shader);
+        shader.setUniform1f("normalization", sort_buffer.at(idx));
+        info_val = sort_buffer.at(idx);
+    } else if (color_style == "ridge_feature") {
+        buffer_name = "v_buffer";
+        q_buffer = QVector<float>::fromStdVector(themesh->curv1);
+
+        std::vector<float> filter_buffer;
+        std::copy_if(q_buffer.begin(), q_buffer.end(), std::back_inserter(filter_buffer), Rtsc::is_pos);
+
+        std::sort(filter_buffer.begin(), filter_buffer.end());
+        int idx = filter_buffer.size() * .90;
+
+        GQvbs.add(buffer_name, 1, q_buffer);
+        shader = GQShaderManager::bindProgram("buffer");
+        GQvbs.bind(shader);
+        shader.setUniform1f("normalization", filter_buffer.at(idx));
+        info_val = filter_buffer.at(idx);
+    } else if (color_style == "valley_feature") {
+        buffer_name = "v_buffer";
+        q_buffer = QVector<float>::fromStdVector(themesh->curv1);
+
+        std::transform(q_buffer.begin(), q_buffer.end(), q_buffer.begin(), std::negate<float>());
+        std::vector<float> filter_buffer;
+        std::copy_if(q_buffer.begin(), q_buffer.end(), std::back_inserter(filter_buffer), Rtsc::is_pos);
+
+        std::sort(filter_buffer.begin(), filter_buffer.end());
+        int idx = filter_buffer.size() * .90;
+
+        GQvbs.add(buffer_name, 1, q_buffer);
+        shader = GQShaderManager::bindProgram("buffer");
+        GQvbs.bind(shader);
+        shader.setUniform1f("normalization", filter_buffer.at(idx));
+        info_val = filter_buffer.at(idx);
     }
     // Actual lighting shaders
     else {
@@ -619,6 +696,7 @@ void compute_perview(vector<float> &ndotv, vector<float> &kr,
 		for (int i = 0; i < nv; i++)
 			Rtsc::compute_Dt1q1(themesh, i, ndotv[i], q1, t1, Dt1q1[i]);
 	}
+
 }
 
 
@@ -1769,6 +1847,22 @@ void filter_mesh(int dummy = 0)
 	currsmooth *= 1.1f;
 }
 
+void filter_mesh(int i, bool use_val)
+{
+  currsmooth = i * themesh->feature_size();
+	smooth_mesh(themesh, currsmooth);
+
+	themesh->pointareas.clear();
+	themesh->normals.clear();
+	themesh->curv1.clear();
+	themesh->dcurv.clear();
+	themesh->need_normals();
+	themesh->need_curvatures();
+	themesh->need_dcurv();
+	curv_colors.clear();
+	gcurv_colors.clear();
+}
+
 
 // Diffuse the normals across the mesh
 void filter_normals(int dummy = 0)
@@ -1783,6 +1877,21 @@ void filter_normals(int dummy = 0)
 	gcurv_colors.clear();
 	currsmooth *= 1.1f;
 }
+
+// Diffuse the normals across the mesh
+void filter_normals(int i, bool use_val)
+{
+  currsmooth = i * themesh->feature_size();
+	printf("\r");  fflush(stdout);
+	diffuse_normals(themesh, currsmooth);
+	themesh->curv1.clear();
+	themesh->dcurv.clear();
+	themesh->need_curvatures();
+	themesh->need_dcurv();
+	curv_colors.clear();
+	gcurv_colors.clear();
+}
+
 
 
 // Diffuse the curvatures across the mesh
@@ -1854,6 +1963,16 @@ void compute_feature_size()
 	nth_element(samples.begin(), samples.begin() + which, samples.end());
 
 	feature_size = min(mult / samples[which], max_feature_size);
+}
+
+float get_feature_size()
+{
+  return feature_size;
+}
+
+float get_info_val()
+{
+  return info_val;
 }
 
 void initialize(TriMesh* mesh)

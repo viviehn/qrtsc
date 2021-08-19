@@ -13,6 +13,7 @@ See the COPYING file for details.
 
 uniform vec3 light_dir_world;
 
+
 varying vec3 vert_pos_world;
 varying vec3 vert_pos_camera;
 varying vec4 vert_pos_clip;
@@ -42,4 +43,5 @@ void main()
     /*float dotcamerasign = sign(dot(vert_normal_camera, vert_vec_view));
     vert_normal_camera *= dotcamerasign;
     vert_normal_world_ff = vert_normal_world * dotcamerasign;*/
+
 }

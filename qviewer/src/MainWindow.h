@@ -50,9 +50,13 @@ class MainWindow : public QMainWindow
     bool openScene(const QString& filename);
     bool saveScene(const QString& filename);
     bool saveScreenshot(const QString& filename);
+    void filterNormals(int i, bool use_val);
+    void smoothMesh(int i, bool use_val);
 
     bool saveCamera(const QString& filename);
     bool openCamera(const QString& filename);
+
+    bool saveBufferInfo(const QString& filename);
 
   protected:
     void closeEvent(QCloseEvent* event );

@@ -29,6 +29,7 @@ class ScriptUtilities : public QObject
     
   public slots:
     QStringList findFiles(const QString& dir, const QString& filters);
+    void makeDir(const QString& path);
     QString basename(const QString& path);
     QString dirname(const QString& path);
 };

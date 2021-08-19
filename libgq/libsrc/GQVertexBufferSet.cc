@@ -387,8 +387,11 @@ void GQVertexBufferSet::bindBuffer( const BufferInfo& info, int attrib ) const
 {
     int stride = info._type_size * info._width * _element_stride;
     int offset = stride * _starting_element;
+
     
     int bind_target = GL_ARRAY_BUFFER;
+
+
     if (info._semantic == GQ_INDEX)
     {
         assert(info._vbo_id >= 0);
@@ -406,6 +409,7 @@ void GQVertexBufferSet::bindBuffer( const BufferInfo& info, int attrib ) const
         glBindBuffer(bind_target, 0);
         datap = info.dataPointer() + offset;    
     }
+    reportGLError();
 
     switch (info._semantic)
     {
@@ -435,18 +439,21 @@ void GQVertexBufferSet::bindBuffer( const BufferInfo& info, int attrib ) const
         default:
             assert(attrib >= 0);
             glEnableVertexAttribArray(attrib);
+            reportGLError();
             glVertexAttribPointer(attrib, info._width, info._data_type, 
                                   info._normalize, stride, 
                                   (const void*)(datap));
+            reportGLError();
             break;
     }
 
     // Have to leave some VBO bound here (on mac),
     // even if we have bound and set multiple VBOs or glDraw*
     // will crash.
-    // glBindBuffer(bind_target, 0);
+    glBindBuffer(bind_target, 0);
 
     _bound_buffers[info._name] = attrib;
+    reportGLError();
 }
 
 void GQVertexBufferSet::unbindBuffer( const BufferInfo& info ) const

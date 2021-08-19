@@ -98,6 +98,7 @@ class GQShaderManager
 
          static GQShaderRef bindProgram( const QString& name );
         static const QString& currentProgramName() { return _current_program_name; }
+        static int  currentProgramRefGuid() { return _current_program_ref_guid; }
        
     // interface to the shader ref class
     protected:
@@ -109,7 +110,6 @@ class GQShaderManager
         static bool bindNamedTexture(int program_bind_guid, const QString& name, 
                                      const GQTexture* tex );
         
-        static int  currentProgramRefGuid() { return _current_program_ref_guid; }
         static void incRef( int program_bind_guid );
         static void decRef( int program_bind_guid );
 

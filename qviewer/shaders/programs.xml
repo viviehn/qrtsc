@@ -121,5 +121,25 @@ See the COPYING file for details.
             <source filename="normals.frag"/>
         </shader>
     </program>
+    <program name="buffer">
+        <shader type="vertex">
+            <source filename="version.glsl"/>
+            <source filename="polygon_render2.vert"/>
+        </shader>
+        <shader type="fragment">
+            <source filename="version.glsl"/>
+            <source filename="buffer.frag"/>
+        </shader>
+    </program>
+    <program name="negbuffer">
+        <shader type="vertex">
+            <source filename="version.glsl"/>
+            <source filename="polygon_render2.vert"/>
+        </shader>
+        <shader type="fragment">
+            <source filename="version.glsl"/>
+            <source filename="negbuffer.frag"/>
+        </shader>
+    </program>
 </glsl_programs>
 

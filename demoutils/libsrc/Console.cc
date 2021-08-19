@@ -201,6 +201,13 @@ QStringList ScriptUtilities::findFiles(const QString& dir_name, const QString& f
     return output;
 }
 
+
+void ScriptUtilities::makeDir(const QString& path) 
+{
+  QDir dir(path);
+  if (!dir.exists())
+        dir.mkpath(".");
+}
 QString ScriptUtilities::basename(const QString& path)
 {
     QFileInfo info(path);

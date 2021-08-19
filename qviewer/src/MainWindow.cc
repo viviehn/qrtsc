@@ -292,6 +292,7 @@ void MainWindow::setupFileMenu()
         this, SLOT(on_actionSave_Camera_triggered()));
     fileMenu->addAction(saveCameraAction);
 
+
     fileMenu->addSeparator();
 
     QAction* reloadShadersAction = new QAction(tr("&Reload Shaders"), 0);
@@ -413,6 +414,9 @@ void MainWindow::on_actionSave_Camera_triggered()
     }
 }
 
+
+
+
 void MainWindow::on_actionSave_Screenshot_triggered()
 {
 	QString filename = 
@@ -427,12 +431,14 @@ void MainWindow::on_actionSave_Screenshot_triggered()
 
 bool MainWindow::saveScreenshot(const QString& filename)
 {
+    
     QFileInfo info(filename);
     QDir dir = info.dir();
     if (!dir.exists()) {
         qCritical("Directory %s does not exist.", qPrintable(dir.path()));
         return false;
     }
+    _gl_viewer->updateGL();
     
     _gl_viewer->saveScreenshot(filename);
     return true;
@@ -458,6 +464,22 @@ bool MainWindow::saveCamera(const QString& filename)
     out << _gl_viewer->camera()->fieldOfView() << "\n";
     QSize viewersize = _gl_viewer->size();
     out << viewersize.width() << " " << viewersize.height() << "\n";
+    file.close();
+
+    _console->print(QString("Wrote %1\n").arg(filename));
+    return true;
+}
+
+bool MainWindow::saveBufferInfo(const QString& filename)
+{
+    QFile file( filename );
+    if (!file.open(QIODevice::ReadWrite | QIODevice::Text))
+        return false;
+
+    QTextStream out(&file);
+    out.seek(file.size());
+
+    out << Rtsc::get_info_val() << " " << Rtsc::get_feature_size() << "\n";
     file.close();
 
     _console->print(QString("Wrote %1\n").arg(filename));
@@ -532,6 +554,22 @@ void MainWindow::on_actionSmooth_Mesh_triggered()
         Rtsc::filter_mesh();
         _gl_viewer->updateGL();
     }
+}
+
+void MainWindow::smoothMesh(int i, bool use_val)
+{
+    if (_scene) {
+        Rtsc::filter_mesh(i, use_val);
+        _gl_viewer->updateGL();
+    }
+}
+
+void MainWindow::filterNormals(int i, bool use_val) 
+{
+  if (_scene) {
+      Rtsc::filter_normals(i, use_val);
+      _gl_viewer->updateGL();
+  }
 }
 
 void MainWindow::on_actionSmooth_Curvatures_triggered() 
