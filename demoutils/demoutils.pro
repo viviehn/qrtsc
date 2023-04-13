@@ -23,6 +23,8 @@ else {
 	}
 }
 
+QMAKE_CXXFLAGS += -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk
+
 CONFIG += staticlib
 QT += opengl xml script
 

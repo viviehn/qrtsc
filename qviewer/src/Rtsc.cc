@@ -79,6 +79,10 @@ static dkFloat rv_thresh("Tests->RV Thresh", 0.1, 0.0, 1, 0.01);
 static dkFloat ar_thresh("Tests->AR Thresh", 0.1, 0.0, 1, 0.01);
 static dkFloat poly_offset_factor("Tests->Polygon Offset", 5.0);
 
+// Toggles for lighting
+static dkFloat light_theta("Style->Light Theta", 0.0, 0.0, 1, 0.01);
+static dkFloat light_phi("Style->Light Phi", 0.0, 0.0, 1, 0.01);
+
 // Toggles for style
 static dkBool use_texture("Style->Use Texture", false);
 static dkBool draw_faded("Style->Draw Faded", true);
@@ -91,7 +95,7 @@ static dkBool draw_edges("Style->Draw Edges", false);
 vector<Color> curv_colors, gcurv_colors;
 static QStringList mesh_color_types = QStringList() << "White" << "Gray" 
     << "Black" << "Curvature" << "Gaussian C." << "Mesh" << "Depth"
-    << "Normals" << "nv" << "apparent_ridge_feature" << "suggestive_contour_feature" << 
+    << "Normals" << "normals_world" << "viewdir" << "ndotv" << "radial_curv" << "apparent_ridge_feature" << "suggestive_contour_feature" << 
     "ridge_feature" << "valley_feature" << "Texture";
 static dkStringList color_style("Style->Mesh Color", mesh_color_types);
 
@@ -104,7 +108,7 @@ vec light_direction;
     
 // Background color
 static QStringList background_types = QStringList() << "White" << "Black" 
-    << "Gray";
+    << "Gray" << "Red";
 static dkStringList background_style("Style->Background", background_types);
 
 static dkFilename ui_texture_filename("Style->Solid Texture");
@@ -129,7 +133,7 @@ xform xf;           // Local copy of the viewing transform
 point viewpos;
     
 // Per-vertex computed values at each frame
-vector<float> ndotv, kr;
+vector<float> ndotv, kr, rcurv_colors;
 QVector<float> q_ndotv;
 vector<float> sctest_num, sctest_den, shtest_num;
 vector<float> q1, Dt1q1;
@@ -300,6 +304,20 @@ void compute_curv_colors()
 	}
 }
 
+void compute_rcurv_colors()
+{
+	float cscale = 10.0f * feature_size;
+
+	int nv = themesh->vertices.size();
+	rcurv_colors.resize(nv);
+	for (int i = 0; i < nv; i++) {
+		float H = kr[i];
+		float c = (atan(H*cscale) + M_PI_2) / M_PI;
+		c = sqrt(c);
+		rcurv_colors[i] = c;
+	}
+}
+
 
 // Similar, but grayscale mapping of mean curvature H
 void compute_gcurv_colors()
@@ -389,13 +407,21 @@ void draw_base_mesh()
         shader.setUniform1f("bsphere_radius", themesh->bsphere.r);
     } else if (color_style == "Normals") {
         shader = GQShaderManager::bindProgram("normals");
-    } else if (color_style == "nv") {
+    } else if (color_style == "normals_world") {
+        shader = GQShaderManager::bindProgram("normals_world");
+
+    } else if (color_style == "viewdir") {
+        shader = GQShaderManager::bindProgram("viewdir");
+    } else if (color_style == "ndotv") {
+        shader = GQShaderManager::bindProgram("ndotv");
+        /*
         q_buffer = QVector<float>::fromStdVector(ndotv);
         buffer_name = "v_buffer";
         GQvbs.add(buffer_name, 1, q_buffer);
         shader = GQShaderManager::bindProgram("buffer");
         shader.setUniform1f("normalization", 1.0);
         GQvbs.bind(shader);
+        */
     } else if (color_style == "apparent_ridge_feature") {
         buffer_name = "v_buffer";
         q_buffer = QVector<float>::fromStdVector(q1);
@@ -409,6 +435,15 @@ void draw_base_mesh()
         GQvbs.bind(shader);
         shader.setUniform1f("normalization", sort_buffer.at(idx));
         info_val = sort_buffer.at(idx);
+    } else if (color_style == "radial_curv") {
+        compute_rcurv_colors();
+        buffer_name = "v_buffer";
+        q_buffer = QVector<float>::fromStdVector(rcurv_colors);
+
+        GQvbs.add(buffer_name, 1, q_buffer);
+        shader = GQShaderManager::bindProgram("buffer");
+        GQvbs.bind(shader);
+        shader.setUniform1f("normalization", 1.0);
     } else if (color_style == "suggestive_contour_feature") {
         buffer_name = "v_buffer";
         q_buffer = QVector<float>::fromStdVector(sctest_num);
@@ -1770,10 +1805,27 @@ void draw_lines()
 	if (draw_bdy)
 		draw_boundaries(false);
 }
+void setLightDir(const vec& lightdir)
+{
+    light_direction = lightdir;
+}
+
+
+void setLightDir(const float theta, const float phi)
+{
+  float t = theta*2*M_PI;
+  float p = phi*M_PI/2;
+  vec light_dir = vec(cos(t) * sin(p), 
+                             sin(t) * sin(p),
+                             cos(p));
+  setLightDir(inv(xf)  * light_dir);
+}
     
 // Draw the mesh, possibly including a bunch of lines
 void draw_everything()
 {
+
+  setLightDir(light_theta, light_phi);
 	compute_perview(ndotv, kr, sctest_num, sctest_den, shtest_num,
                     q1, t1, Dt1q1, use_texture);
     
@@ -1809,10 +1861,6 @@ void setCameraTransform(xform main)
     viewpos = inv(xf) * point(0,0,0);
 }
     
-void setLightDir(const vec& lightdir)
-{
-    light_direction = lightdir;
-}
 
 // Draw the scene
 void redraw()
@@ -1821,7 +1869,9 @@ void redraw()
         glClearColor(0.0,0.0,0.0,0.0);
     } else if (background_style == "Gray") {
         glClearColor(0.5,0.5,0.5,0.0);
-    } else {
+    } else if (background_style == "Red") {
+        glClearColor(1.0,0.0,0.0,0.0);
+    }else {
         glClearColor(1.0,1.0,1.0,0.0);
     }
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

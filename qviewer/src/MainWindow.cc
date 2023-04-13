@@ -470,6 +470,19 @@ bool MainWindow::saveCamera(const QString& filename)
     return true;
 }
 
+
+bool MainWindow::saveCameraProjMat(const QString& filename)
+{
+    GLdouble mv[16];
+    _gl_viewer->camera()->getProjectionMatrix(mv);
+    xform xf( mv );
+
+    xf.write( qPrintable(filename) );
+
+    _console->print(QString("Wrote %1\n").arg(filename));
+    return true;
+}
+
 bool MainWindow::saveBufferInfo(const QString& filename)
 {
     QFile file( filename );

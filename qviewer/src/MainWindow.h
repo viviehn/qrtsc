@@ -54,6 +54,7 @@ class MainWindow : public QMainWindow
     void smoothMesh(int i, bool use_val);
 
     bool saveCamera(const QString& filename);
+    bool saveCameraProjMat(const QString& filename);
     bool openCamera(const QString& filename);
 
     bool saveBufferInfo(const QString& filename);

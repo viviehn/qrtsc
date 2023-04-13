@@ -57,4 +57,5 @@ SOURCES += matio/*.c
 # Matio calls zlib functions with the z_ prefix, so turn that on here.
 #DEFINES += Z_PREFIX
 
+QMAKE_CXXFLAGS += -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk
 INCLUDEPATH += /usr/local/Cellar/qt@4/4.8.7_6/lib/QtCore.framework/Versions/4/Headers/

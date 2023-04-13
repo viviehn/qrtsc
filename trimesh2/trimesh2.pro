@@ -36,4 +36,5 @@ INCLUDEPATH += include
 HEADERS += include/*.h
 SOURCES += libsrc/*.cc
 
+QMAKE_CXXFLAGS += -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk
 INCLUDEPATH += /usr/local/Cellar/qt@4/4.8.7_6/lib/QtCore.framework/Versions/4/Headers/

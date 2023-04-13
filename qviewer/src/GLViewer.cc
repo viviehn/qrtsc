@@ -168,7 +168,6 @@ void GLViewer::draw()
     }
     
     _scene->setCameraTransform(main_cam_xf);
-    _scene->setLightDir(vec(manipulatedFrame()->inverseTransformOf(qglviewer::Vec(0,0,1))));
     _scene->drawScene();
     
     if (_display_timers)
